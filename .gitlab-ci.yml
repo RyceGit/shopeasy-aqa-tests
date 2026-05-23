@@ -3,31 +3,46 @@ stages:
 
 run_automation:
   stage: test
-  # Используем чистый образ с Java 17 и Maven
-  image: maven:3.9.6-eclipse-temurin-17
+  image: maven:3.9.9-eclipse-temurin-21
 
-  # Включаем Docker-в-Docker, чтобы пайплайн умел работать с контейнерами
   services:
-    - docker:24.0.5-dind
+    # Твои собственные образы из Docker Hub
+    - name: reqin0/shopeasy-backend:latest
+      alias: backend
+    - name: reqin0/shopeasy-frontend:latest
+      alias: frontend
+    # Официальные готовые сервисы инфраструктуры
+    - name: mysql:8.0
+      alias: mysql
+    - name: apache/kafka:3.7.0
+      alias: kafka
 
   variables:
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_TLS_CERTDIR: ""
-
-  before_script:
-    # 1. Устанавливаем Docker Compose внутрь контейнера сборщика
-    - apt-get update && apt-get install -y docker-compose-plugin docker.io
-    # 2. Поднимаем твою инфраструктуру (БД и Kafka) из твоего docker-compose.yml
-    - docker compose up -d
-    # 3. Даем 15 секунд, чтобы брокер и база успели полностью инициализироваться
-    - sleep 15
+    # Переменные для базы данных (точно такие же, как в твоем docker-compose)
+    MYSQL_DATABASE: shopeasy
+    MYSQL_ROOT_PASSWORD: "1234"
+    # Переменные для бэкенда, чтобы он видел базу и кафку внутри сети GitLab
+    SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/shopeasy?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    SPRING_DATASOURCE_USERNAME: root
+    SPRING_DATASOURCE_PASSWORD: "1234"
+    SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    # Переменные для настройки встроенной Кафки
+    KAFKA_NODE_ID: 1
+    KAFKA_PROCESS_ROLES: broker,controller
+    KAFKA_LISTENERS: INSIDE://:9092,CONTROLLER://:9093
+    KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9092
+    KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,CONTROLLER:PLAINTEXT
+    KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+    KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+    KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+    KAFKA_OFFER_AUTO_CREATE_TOPICS: "true"
 
   script:
-    # Запускаем прогон всех автотестов
-    - ./mvnw clean test
+    - mvn clean test
 
   artifacts:
     when: always
     paths:
       - target/allure-results
+      - allure-results
     expire_in: 7 days
