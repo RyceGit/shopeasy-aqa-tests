@@ -3,37 +3,34 @@ stages:
 
 run_automation:
   stage: test
-  # Меняем образ на специальный (со встроенным Chrome Headless и драйверами), чтобы Selenide работал из коробки
-  image: alekzdone/maven-3.9-jdk-21-chrome:latest
+  # Возвращаем надежный официальный образ
+  image: maven:3.9.9-eclipse-temurin-21
 
   services:
     - name: mysql:8.0
       alias: mysql
     - name: apache/kafka:3.7.0
       alias: kafka
-    # Бэкенд и фронтенд запускаем следом за инфраструктурой
     - name: reqin0/shopeasy-backend:latest
       alias: backend
     - name: reqin0/shopeasy-frontend:latest
       alias: frontend
+    # Добавляем изолированный контейнер с браузером для UI-тестов
+    - name: selenium/standalone-chrome:latest
+      alias: selenium
 
   variables:
-    # Настройки для Selenide: запускаем браузер без графического интерфейса (headless) и отключаем песочницу для Docker
-    SELENIDE_HEADLESS: "true"
-    SELENIDE_CHROME_OPTIONS: "--no-sandbox --disable-dev-shm-usage"
+    # КЛЮЧЕВОЙ РЫЧАГ: Разрешаем сервисам (Бэкенду, Базе, Кафке) видеть друг друга по алиасам
+    FF_NETWORK_PER_BUILD: "true"
 
-    # Переменные для базы данных
     MYSQL_DATABASE: "shopeasy"
     MYSQL_ROOT_PASSWORD: "1234"
 
-    # Переменные для бэкенда.
-    # Добавляем параметры авто-реконнекта и ожидания, чтобы бэкенд не падал, пока MySQL поднимается
-    SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/shopeasy?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true&autoReconnect=true&connectTimeout=30000"
+    SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/shopeasy?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true&autoReconnect=true"
     SPRING_DATASOURCE_USERNAME: "root"
     SPRING_DATASOURCE_PASSWORD: "1234"
     SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
 
-    # Переменные для настройки встроенной Кафки
     KAFKA_NODE_ID: "1"
     KAFKA_PROCESS_ROLES: "broker,controller"
     KAFKA_LISTENERS: "INSIDE://:9092,CONTROLLER://:9093"
@@ -45,9 +42,9 @@ run_automation:
     KAFKA_OFFER_AUTO_CREATE_TOPICS: "true"
 
   script:
-    # Главный рычаг: даем контейнерам (особенно Кафке и Бэкенду) 30 секунд, чтобы полностью инициализироваться до запуска тестов
     - sleep 30
-    - mvn clean test
+    # Направляем Selenide в контейнер с сервисом браузера
+    - mvn clean test -Dselenide.remote="http://selenium:4444/wd/hub" -Dselenide.browser="chrome"
 
   artifacts:
     when: always
