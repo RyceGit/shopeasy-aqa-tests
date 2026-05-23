@@ -36,7 +36,7 @@ public class AuthTest {
 
         requestSpec = new RequestSpecBuilder()
                 .setBaseUri(apiUrl)
-                .contentType("application/json")
+                .setContentType("application/json") // <--- Исправлено здесь
                 .addHeader("Authorization", "Bearer " + token);
     }
 

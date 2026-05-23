@@ -49,7 +49,7 @@ public class ProductIntegrationTest {
 
         requestSpec = new RequestSpecBuilder()
                 .setBaseUri(apiUrl)
-                .contentType("application/json")
+                .setContentType("application/json") // <--- Исправлено здесь
                 .addHeader("Authorization", "Bearer " + token);
     }
 
