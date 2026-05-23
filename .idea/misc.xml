@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="MarkdownSettings">
+    <option name="customStylesheetText" value="/* Внешний вид самого квадратика (как по умолчанию в IDEA) */&#10;input[type=&quot;checkbox&quot;],&#10;input[type=&quot;checkbox&quot;]:disabled {&#10;    -webkit-appearance: none !important;&#10;    appearance: none !important;&#10;    width: 16px !important;&#10;    height: 16px !important;&#10;    border: 1px solid #5c5c5c !important; /* Серая рамка */&#10;    border-radius: 3px !important;&#10;    background-color: transparent !important; /* Прозрачный фон */&#10;    opacity: 1 !important; /* Убираем блеклость */&#10;    margin-right: 6px !important;&#10;    vertical-align: text-bottom !important;&#10;}&#10;&#10;/* Настройки для отмеченного чекбокса */&#10;input[type=&quot;checkbox&quot;]:checked,&#10;input[type=&quot;checkbox&quot;]:disabled:checked {&#10;    /* Вставляем ярко-зеленую галочку (%2300E676 это цвет #00E676) */&#10;    background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300E676' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E&quot;) !important;&#10;    background-size: 85% !important;&#10;    background-position: center !important;&#10;    background-repeat: no-repeat !important;&#10;}" />
+    <option name="useCustomStylesheetText" value="true" />
+  </component>
+  <component name="MavenProjectsManager">
+    <option name="originalFiles">
+      <list>
+        <option value="$PROJECT_DIR$/pom.xml" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="ms-17" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/out" />
+  </component>
+</project>

@@ -1,0 +1,33 @@
+stages:
+  - test
+
+run_automation:
+  stage: test
+  # Используем чистый образ с Java 17 и Maven
+  image: maven:3.9.6-eclipse-temurin-17
+
+  # Включаем Docker-в-Docker, чтобы пайплайн умел работать с контейнерами
+  services:
+    - docker:24.0.5-dind
+
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+
+  before_script:
+    # 1. Устанавливаем Docker Compose внутрь контейнера сборщика
+    - apt-get update && apt-get install -y docker-compose-plugin docker.io
+    # 2. Поднимаем твою инфраструктуру (БД и Kafka) из твоего docker-compose.yml
+    - docker compose up -d
+    # 3. Даем 15 секунд, чтобы брокер и база успели полностью инициализироваться
+    - sleep 15
+
+  script:
+    # Запускаем прогон всех автотестов
+    - ./mvnw clean test
+
+  artifacts:
+    when: always
+    paths:
+      - target/allure-results
+    expire_in: 7 days
