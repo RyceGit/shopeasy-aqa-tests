@@ -42,9 +42,8 @@ run_automation:
     KAFKA_OFFER_AUTO_CREATE_TOPICS: "true"
 
   script:
-    - sleep 30
-    # Направляем Selenide в контейнер с сервисом браузера
-    - mvn clean test -Dselenide.remote="http://selenium:4444/wd/hub" -Dselenide.browser="chrome"
+  - sleep 30
+  - mvn clean test -Dselenide.remote="http://selenium:4444/wd/hub" -Dselenide.browser="chrome" -Dselenide.baseUrl="http://frontend"
 
   artifacts:
     when: always
