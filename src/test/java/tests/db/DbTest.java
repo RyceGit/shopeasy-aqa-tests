@@ -10,14 +10,16 @@ public class DbTest {
 
     @Test
     void testDatabaseConnection() {
-        // Меняем порт на 3307 и пароль на 1234 строго по докер-файлу
-        String url = "jdbc:mysql://localhost:3307/shopeasy";
+        // Динамическое чтение URL: если мы в GitLab CI — берем из переменных, если локально — берем localhost:3307
+        String envUrl = System.getenv("SPRING_DATASOURCE_URL");
+        String url = (envUrl != null && !envUrl.isEmpty()) ? envUrl : "jdbc:mysql://localhost:3307/shopeasy";
+
         String user = "root";
         String password = "1234";
 
         try (Connection connection = DriverManager.getConnection(url, user, password)) {
             System.out.println("========================================");
-            System.out.println("УСПЕШНО ПОДКЛЮЧИЛИСЬ К MYSQL В ДОКЕРЕ!");
+            System.out.println("УСПЕШНО ПОДКЛЮЧИЛИСЬ К MYSQL!");
             System.out.println("========================================");
 
             Statement statement = connection.createStatement();
@@ -30,7 +32,7 @@ public class DbTest {
             System.out.println("========================================");
 
         } catch (Exception e) {
-            System.out.println("НЕ УДАЛОСЬ ПОДКЛЮЧИТЬСЯ!");
+            System.out.println("НЕ УДАЛОСЬ ПОДКЛЮЧИТЬСЯ К БАЗЕ ПО АДРЕСУ: " + url);
             e.printStackTrace();
         }
     }

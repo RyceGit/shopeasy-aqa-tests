@@ -8,8 +8,10 @@ import org.junit.jupiter.api.Test;
 
 public class AuthTest {
 
-    // Сюда мы сохраним готовый конфиг с токеном внутри
     private static RequestSpecBuilder requestSpec;
+
+    // Читаем API URL из параметров Maven или используем локалхост
+    private final String apiUrl = System.getProperty("api.url", "http://localhost:8080");
 
     @BeforeEach
     void setUp() {
@@ -20,9 +22,8 @@ public class AuthTest {
                 }
                 """;
 
-        // 1. Стучимся за токеном
         Response response = RestAssured.given()
-                .baseUri("http://localhost:8080")
+                .baseUri(apiUrl)
                 .contentType("application/json")
                 .body(loginBody)
                 .when()
@@ -33,25 +34,19 @@ public class AuthTest {
 
         String token = response.path("accessToken");
 
-        // 2. Рычаг этапа: Настраиваем шаблон запроса, который АВТОМАТИЧЕСКИ
-        // будет добавлять заголовок "Authorization: Bearer <токен>" ко всем тестам
         requestSpec = new RequestSpecBuilder()
-                .setBaseUri("http://localhost:8080")
-                .setContentType("application/json")
+                .setBaseUri(apiUrl)
+                .contentType("application/json")
                 .addHeader("Authorization", "Bearer " + token);
     }
 
     @Test
     void testAccessToProtectedEndpoint() {
-        // Теперь нам не нужно прописывать baseUri, contentType и токен вручную!
-        // Мы просто передаем нашу готовую спецификацию .spec(requestSpec.build())
         RestAssured.given()
                 .spec(requestSpec.build())
                 .when()
-                .post("/api/users") // Тот самый эндпоинт создания юзеров, который раньше давал нам 403 Forbidden
+                .post("/api/users")
                 .then()
-                // Если сервер ответит 400 (Bad Request) вместо 403 (Forbidden),
-                // значит токен сработал, нас пустили внутрь "кабинета", но мы просто послали пустое тело!
                 .statusCode(400);
     }
 }

@@ -43,8 +43,7 @@ run_automation:
 
   script:
   - sleep 30
-  - mvn clean test -Dselenide.remote="http://selenium:4444/wd/hub" -Dselenide.browser="chrome" -Dselenide.baseUrl="http://frontend"
-
+  - mvn clean test -Dselenide.remote="http://selenium:4444/wd/hub" -Dselenide.browser="chrome" -Dselenide.baseUrl="http://frontend" -Dapi.url="http://backend:8080"
   artifacts:
     when: always
     paths:

@@ -18,18 +18,25 @@ public class ProductIntegrationTest {
 
     private static RequestSpecBuilder requestSpec;
 
-    // Настройки БД строго по нашему docker-compose
-    private final String dbUrl = "jdbc:mysql://localhost:3307/shopeasy";
+    // Читаем URL из окружения (GitLab CI) или падаем на локалхост
+    private final String dbUrl = getDbUrl();
     private final String dbUser = "root";
     private final String dbPassword = "1234";
 
+    // Читаем API URL из параметров Maven или используем локалхост
+    private final String apiUrl = System.getProperty("api.url", "http://localhost:8080");
+
+    private String getDbUrl() {
+        String envUrl = System.getenv("SPRING_DATASOURCE_URL");
+        return (envUrl != null && !envUrl.isEmpty()) ? envUrl : "jdbc:mysql://localhost:3307/shopeasy";
+    }
+
     @BeforeEach
     void setUp() {
-        // Автоматически получаем токен перед тестом
         String loginBody = "{\"username\": \"ryce_test_automation\", \"password\": \"password123\"}";
 
         Response response = RestAssured.given()
-                .baseUri("http://localhost:8080")
+                .baseUri(apiUrl)
                 .contentType("application/json")
                 .body(loginBody)
                 .when()
@@ -41,8 +48,8 @@ public class ProductIntegrationTest {
         String token = response.path("accessToken");
 
         requestSpec = new RequestSpecBuilder()
-                .setBaseUri("http://localhost:8080")
-                .setContentType("application/json")
+                .setBaseUri(apiUrl)
+                .contentType("application/json")
                 .addHeader("Authorization", "Bearer " + token);
     }
 
@@ -50,7 +57,6 @@ public class ProductIntegrationTest {
     void testCreateProductViaApiAndVerifyInDb() throws Exception {
         String uniqueProductName = "Ryce Shirt " + System.currentTimeMillis();
 
-        // 1. Формируем тело JSON для создания товара строго по Swagger
         String productJson = """
                 {
                   "name": "%s",
@@ -60,27 +66,22 @@ public class ProductIntegrationTest {
                 }
                 """.formatted(uniqueProductName);
 
-        // 2. Отправляем POST запрос на создание товара через API
         RestAssured.given()
                 .spec(requestSpec.build())
                 .body(productJson)
                 .when()
                 .post("/api/products")
                 .then()
-                .statusCode(200); // Обычно для создания используется 201 Created (если упадет, проверим статус)
+                .statusCode(200);
 
-        // 3. Идем напрямую в базу данных проверять, записался ли товар
         try (Connection connection = DriverManager.getConnection(dbUrl, dbUser, dbPassword)) {
             Statement statement = connection.createStatement();
 
-            // Пишем SQL запрос на поиск товара по нашему уникальному имени
             String sqlQuery = "SELECT * FROM products WHERE name = '" + uniqueProductName + "'";
             ResultSet resultSet = statement.executeQuery(sqlQuery);
 
-            // Проверяем, что база вернула хотя бы одну строчку
             assertTrue(resultSet.next(), "Товар не был найден в базе данных!");
 
-            // Вытаскиваем значения из колонок таблицы и сверяем с тем, что отправляли
             String actualDescription = resultSet.getString("description");
             double actualPrice = resultSet.getDouble("price");
             int actualStock = resultSet.getInt("stock");
