@@ -23,7 +23,7 @@ public class KafkaIntegrationTest {
 
     @BeforeAll
     public static void setup() {
-        RestAssured.baseURI = "http://localhost:8080";
+        RestAssured.baseURI = System.getProperty("api.url", "http://localhost:8080");
     }
 
     @Test

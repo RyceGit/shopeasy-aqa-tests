@@ -35,6 +35,14 @@ public class ProductIntegrationTest {
     void setUp() {
         String loginBody = "{\"username\": \"ryce_test_automation\", \"password\": \"password123\"}";
 
+        // ШАГ 0: Создаем юзера (игнорируем результат, так как он может уже существовать при локальном перезапуске)
+        RestAssured.given()
+                .baseUri(apiUrl)
+                .contentType("application/json")
+                .body(loginBody)
+                .post("/api/auth/register");
+
+        // ШАГ 1: Логинимся
         Response response = RestAssured.given()
                 .baseUri(apiUrl)
                 .contentType("application/json")
@@ -42,8 +50,9 @@ public class ProductIntegrationTest {
                 .when()
                 .post("/api/auth/login")
                 .then()
-                .statusCode(200)
+                .statusCode(200) // Теперь сервер ответит 200, потому что юзер существует
                 .extract().response();
+        // ... (остальной код)
 
         String token = response.path("accessToken");
 

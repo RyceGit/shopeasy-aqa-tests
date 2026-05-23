@@ -15,7 +15,7 @@ public class LoginUiTest {
 
     @BeforeAll
     static void setUp() {
-        Configuration.baseUrl = "http://localhost";
+        Configuration.baseUrl = System.getProperty("selenide.baseUrl", "http://localhost");
         Configuration.headless = false;
         Configuration.holdBrowserOpen = false;
     }
