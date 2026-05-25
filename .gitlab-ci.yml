@@ -6,16 +6,25 @@ run_automation:
   image: maven:3.9.9-eclipse-temurin-21
 
   services:
-    - name: mysql:8.0
-      alias: mysql
-    - name: apache/kafka:3.7.0
-      alias: kafka
-    - name: reqin0/shopeasy-backend:latest
-      alias: backend
-    - name: reqin0/shopeasy-frontend:latest
-      alias: frontend
-    - name: selenium/standalone-chrome:latest
-      alias: selenium
+  - name: mysql:8.0
+    alias: mysql
+  - name: apache/kafka:3.7.0
+    alias: kafka
+  - name: reqin0/shopeasy-backend:latest
+    alias: backend
+    # РЫЧАГ: Передаем переменные целенаправленно внутрь бэкенда
+    variables:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/shopeasy?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true&autoReconnect=true"
+      SPRING_DATASOURCE_USERNAME: "root"
+      SPRING_DATASOURCE_PASSWORD: "1234"
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  - name: reqin0/shopeasy-frontend:latest
+    alias: frontend
+    # Передаем фронтенду адрес бэкенда, чтобы запросы из UI шли в правильный контейнер
+    variables:
+      API_URL: "http://backend:8080"
+  - name: selenium/standalone-chrome:latest
+    alias: selenium
 
   variables:
     FF_NETWORK_PER_BUILD: "true"
