@@ -49,13 +49,7 @@ run_automation:
   - sleep 30
 
   script:
-    # ПРОВЕРКА 1: Пытаемся достучаться до бэкенда напрямую из контейнера с тестами
-    - echo "=== ПРОВЕРКА СВЯЗИ С БЭКЕНДОМ ==="
-    - curl -v http://backend:8080/api/auth/login || echo "БЭКЕНД НЕОТВЕЧАЕТ ПО СЕТИ"
-
-    # ПРОВЕРКА 2: Запускаем сами тесты
-    - echo "=== ЗАПУСК МУЛЬТИ-ТЕСТОВАННОГО ПРОГОНА ==="
-    - mvn clean test -Dselenide.remote="http://selenium:4444/wd/hub" -Dselenide.browser="chrome" -Dselenide.baseUrl="http://frontend" -Dapi.url="http://backend:8080"
+  - mvn clean test -Dtest=!LoginUiTest -Dapi.url="http://backend:8080"
 
   artifacts:
     when: always

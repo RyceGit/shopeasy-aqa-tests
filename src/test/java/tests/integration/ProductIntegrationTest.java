@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ProductIntegrationTest {
 
-    private static RequestSpecBuilder requestSpec;
+    private RequestSpecBuilder requestSpec;
 
     // Читаем URL из окружения (GitLab CI) или падаем на локалхост
     private final String dbUrl = getDbUrl();
@@ -33,33 +33,33 @@ public class ProductIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        // Гарантируем переопределение URI перед КАЖДЫМ запросом
+        RestAssured.baseURI = System.getProperty("api.url", "http://localhost:8080");
+
         String uniqueUser = "ryce_aqa_" + System.currentTimeMillis();
         String loginBody = "{\"username\": \"" + uniqueUser + "\", \"password\": \"password123\"}";
 
-        // ШАГ 0: Создаем юзера (игнорируем результат, так как он может уже существовать при локальном перезапуске)
+        // Регистрируем
         RestAssured.given()
-                .baseUri(apiUrl)
                 .contentType("application/json")
                 .body(loginBody)
                 .post("/api/auth/register");
 
-        // ШАГ 1: Логинимся
+        // Логинимся
         Response response = RestAssured.given()
-                .baseUri(apiUrl)
                 .contentType("application/json")
                 .body(loginBody)
-                .when()
                 .post("/api/auth/login")
                 .then()
-                .statusCode(200) // Теперь сервер ответит 200, потому что юзер существует
+                .statusCode(200)
                 .extract().response();
-        // ... (остальной код)
 
         String token = response.path("accessToken");
 
+        // Пересоздаем спецификацию с актуальным базовым URI напрямую
         requestSpec = new RequestSpecBuilder()
-                .setBaseUri(apiUrl)
-                .setContentType("application/json") // <--- Исправлено здесь
+                .setBaseUri(RestAssured.baseURI)
+                .setContentType("application/json")
                 .addHeader("Authorization", "Bearer " + token);
     }
 
