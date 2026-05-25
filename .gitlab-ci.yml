@@ -6,15 +6,17 @@ run_automation:
   image: maven:3.9.9-eclipse-temurin-21
 
   services:
-    - name: mysql:8.0
-      alias: mysql
-    - name: apache/kafka:3.7.0
-      alias: kafka
-    # СЕРВИС ДОЛЖЕН БЫТЬ ОДИН
-    - name: reqin0/shopeasy-frontend:v1
-      alias: frontend
-    - name: selenium/standalone-chrome:latest
-      alias: selenium
+  - name: mysql:8.0
+    alias: mysql
+  - name: apache/kafka:3.7.0
+    alias: kafka
+  # ДОБАВЛЕН ПРОПУЩЕННЫЙ БЭКЕНД
+  - name: reqin0/shopeasy-backend:latest
+    alias: backend
+  - name: reqin0/shopeasy-frontend:v1
+    alias: frontend
+  - name: selenium/standalone-chrome:latest
+    alias: selenium
 
   variables:
     # 1. Системные переменные
