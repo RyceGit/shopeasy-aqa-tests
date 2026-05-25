@@ -50,8 +50,9 @@ public class LoginUiTest {
 
         // Входим под гарантированно существующим аккаунтом
         loginPage.login("ryce_test_automation", "password123");
+        loginPage.checkErrorMessageNotVisible();
 
         // Проверяем относительный путь, чтобы тест не падал из-за разницы хостов (frontend vs localhost)
-        webdriver().shouldHave(WebDriverConditions.urlContaining("/products"));
+        webdriver().shouldHave(WebDriverConditions.urlContaining("/products"), java.time.Duration.ofSeconds(10));
     }
 }

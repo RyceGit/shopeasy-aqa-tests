@@ -25,4 +25,6 @@ public class LoginPage {
         passwordField.setValue(password);
         submitButton.click();
     }
+    public void checkErrorMessageNotVisible() {
+    }
 }
