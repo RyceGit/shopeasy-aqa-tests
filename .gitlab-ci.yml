@@ -6,34 +6,34 @@ run_automation:
   image: maven:3.9.9-eclipse-temurin-21
 
   services:
-  - name: mysql:8.0
-    alias: mysql
-  - name: apache/kafka:3.7.0
-    alias: kafka
-  - name: reqin0/shopeasy-backend:latest
-    alias: backend
-    # РЫЧАГ: Передаем переменные целенаправленно внутрь бэкенда
-    variables:
-      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/shopeasy?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true&autoReconnect=true"
-      SPRING_DATASOURCE_USERNAME: "root"
-      SPRING_DATASOURCE_PASSWORD: "1234"
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
-  - name: reqin0/shopeasy-frontend:latest
-    alias: frontend
-    # Передаем фронтенду адрес бэкенда, чтобы запросы из UI шли в правильный контейнер
-    variables:
-      API_URL: "http://backend:8080"
-  - name: selenium/standalone-chrome:latest
-    alias: selenium
+    - name: mysql:8.0
+      alias: mysql
+    - name: apache/kafka:3.7.0
+      alias: kafka
+    # СЕРВИС ДОЛЖЕН БЫТЬ ОДИН
+    - name: reqin0/shopeasy-frontend:v1
+      alias: frontend
+    - name: selenium/standalone-chrome:latest
+      alias: selenium
 
   variables:
+    # 1. Системные переменные
     FF_NETWORK_PER_BUILD: "true"
-    MYSQL_DATABASE: "shopeasy"
-    MYSQL_ROOT_PASSWORD: "1234"
+
+    # 2. Настройки для бэкенда (Spring)
     SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/shopeasy?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true&autoReconnect=true"
     SPRING_DATASOURCE_USERNAME: "root"
     SPRING_DATASOURCE_PASSWORD: "1234"
     SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+
+    # 3. Адрес бэкенда для фронтенда (передается через API_URL)
+    API_URL: "http://backend:8080"
+
+    # 4. Переменные для MySQL
+    MYSQL_DATABASE: "shopeasy"
+    MYSQL_ROOT_PASSWORD: "1234"
+
+    # 5. Переменные для Kafka
     KAFKA_NODE_ID: "1"
     KAFKA_PROCESS_ROLES: "broker,controller"
     KAFKA_LISTENERS: "INSIDE://:9092,CONTROLLER://:9093"
@@ -45,13 +45,11 @@ run_automation:
     KAFKA_OFFER_AUTO_CREATE_TOPICS: "true"
 
   before_script:
-  # Даем сервисам 30 секунд на запуск
-  - sleep 30
-
+    - sleep 30
 
   script:
-  # Запускаем абсолютно все тесты и принудительно связываем Selenide с контейнером Selenium
-  - mvn clean test -Dselenide.remote="http://selenium:4444/wd/hub" -Dselenide.browser="chrome" -Dselenide.baseUrl="http://frontend" -Dapi.url="http://backend:8080"
+    - mvn clean test -Dselenide.remote="http://selenium:4444/wd/hub" -Dselenide.browser="chrome" -Dselenide.baseUrl="http://frontend" -Dapi.url="http://backend:8080"
+
   artifacts:
     when: always
     paths:
