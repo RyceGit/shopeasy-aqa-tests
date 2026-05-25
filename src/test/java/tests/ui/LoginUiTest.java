@@ -27,6 +27,6 @@ public class LoginUiTest {
         loginPage.openPage();
         loginPage.login("ryce_test_automation", "password123");
 
-        webdriver().shouldHave(WebDriverConditions.url("http://localhost/products"));
+        webdriver().shouldHave(WebDriverConditions.urlContaining("/products"));
     }
 }

@@ -15,7 +15,8 @@ public class AuthTest {
 
     @BeforeEach
     void setUp() {
-        String loginBody = "{\"username\": \"ryce_test_automation\", \"password\": \"password123\"}";
+        String uniqueUser = "ryce_aqa_" + System.currentTimeMillis();
+        String loginBody = "{\"username\": \"" + uniqueUser + "\", \"password\": \"password123\"}";
 
         // ШАГ 0: Создаем юзера (игнорируем результат, так как он может уже существовать при локальном перезапуске)
         RestAssured.given()

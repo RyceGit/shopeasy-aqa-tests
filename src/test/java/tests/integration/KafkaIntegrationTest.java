@@ -83,7 +83,8 @@ public class KafkaIntegrationTest {
 
         // Шаг 2: Настраиваем консьюмер для жесткого прямого чтения
         Properties properties = new Properties();
-        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9094");
+        String kafkaUrl = System.getenv("SPRING_KAFKA_BOOTSTRAP_SERVERS") != null ? "kafka:9092" : "localhost:9094";
+        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaUrl);
         properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, "shopeasy-aqa-direct-group"); // Формальность
