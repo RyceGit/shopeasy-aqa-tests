@@ -48,9 +48,10 @@ run_automation:
   # Даем сервисам 30 секунд на запуск
   - sleep 30
 
-  script:
-  - mvn clean test -Dapi.url="http://backend:8080"
 
+  script:
+  # Запускаем абсолютно все тесты и принудительно связываем Selenide с контейнером Selenium
+  - mvn clean test -Dselenide.remote="http://selenium:4444/wd/hub" -Dselenide.browser="chrome" -Dselenide.baseUrl="http://frontend" -Dapi.url="http://backend:8080"
   artifacts:
     when: always
     paths:
