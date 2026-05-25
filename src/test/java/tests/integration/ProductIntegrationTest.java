@@ -32,20 +32,29 @@ public class ProductIntegrationTest {
     }
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         // Гарантируем переопределение URI перед КАЖДЫМ запросом
         RestAssured.baseURI = System.getProperty("api.url", "http://localhost:8080");
 
-        String uniqueUser = "ryce_aqa_" + System.currentTimeMillis();
+        String uniqueUser = "ryce_admin_" + System.currentTimeMillis();
         String loginBody = "{\"username\": \"" + uniqueUser + "\", \"password\": \"password123\"}";
 
-        // Регистрируем
+        // 1. Регистрируем пользователя через обычный API
         RestAssured.given()
                 .contentType("application/json")
                 .body(loginBody)
-                .post("/api/auth/register");
+                .post("/api/auth/register")
+                .then()
+                .statusCode(200);
 
-        // Логинимся
+        // 2. РЫЧАГ: Напрямую через JDBC выставляем пользователю роль ADMIN в БД
+        try (Connection connection = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
+             Statement statement = connection.createStatement()) {
+            String updateSql = "UPDATE users SET role = 'ADMIN' WHERE username = '" + uniqueUser + "'";
+            statement.executeUpdate(updateSql);
+        }
+
+        // 3. Логинимся уже под пользователем, который стал ADMIN
         Response response = RestAssured.given()
                 .contentType("application/json")
                 .body(loginBody)
@@ -56,7 +65,7 @@ public class ProductIntegrationTest {
 
         String token = response.path("accessToken");
 
-        // Пересоздаем спецификацию с актуальным базовым URI напрямую
+        // Пересоздаем спецификацию с актуальным токеном администратора
         requestSpec = new RequestSpecBuilder()
                 .setBaseUri(RestAssured.baseURI)
                 .setContentType("application/json")
