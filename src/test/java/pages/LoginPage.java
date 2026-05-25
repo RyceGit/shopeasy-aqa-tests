@@ -7,15 +7,16 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class LoginPage {
 
-    // 1. Добавляем локатор для ссылки Login в шапке сайта
+    // Ссылка Login в шапке сайта
     private final SelenideElement loginMenuLink = $(Selectors.byText("Login"));
 
     // Локаторы формы
     private final SelenideElement usernameField = $("#username");
     private final SelenideElement passwordField = $("#password");
-    private final SelenideElement submitButton = $(Selectors.byText("Entrar"));
 
-    // 2. Метод открытия страницы теперь кликает по меню, а не ломает Nginx прямым урлом
+    // СТАБИЛЬНЫЙ ЛОКАТОР: Ищет кнопку по типу сабмита формы, игнорируя язык интерфейса
+    private final SelenideElement submitButton = $("button[type='submit']");
+
     public void openPage() {
         loginMenuLink.click();
     }
@@ -25,6 +26,8 @@ public class LoginPage {
         passwordField.setValue(password);
         submitButton.click();
     }
+
     public void checkErrorMessageNotVisible() {
+        $(".error-message").shouldNotBe(com.codeborne.selenide.Condition.visible);
     }
 }
