@@ -16,15 +16,19 @@ public class LoginUiTest {
 
     @BeforeAll
     static void setUp() {
-        Configuration.baseUrl = System.getProperty("selenide.baseUrl", "http://localhost");
+        // Берем baseUrl фронтенда из параметров сборки (в CI это http://frontend, локально - http://localhost)
+        Configuration.baseUrl = System.getProperty("selenide.baseUrl", "http://frontend");
         Configuration.remote = System.getProperty("selenide.remote");
         Configuration.browser = System.getProperty("selenide.browser", "chrome");
-        Configuration.headless = true; // Для CI-среды
-        Configuration.holdBrowserOpen = false;
 
-        // Регистрируем стабильного UI-пользователя перед тестом, если его ещё нет
-        String apiUrl = System.getProperty("api.url", "http://localhost:8080");
-        String loginBody = "{\"username\": \"ryce_ui_user\", \"password\": \"password123\"}";
+        // КЛЮЧЕВЫЕ НАСТРОЙКИ ДЛЯ CI-СРЕДЫ
+        Configuration.headless = true;
+        Configuration.holdBrowserOpen = false;
+        Configuration.timeout = 6000; // Немного увеличим таймаут ожидания элементов для облака
+
+        // ПРЕ-РЕГИСТРАЦИЯ: Создаем пользователя для UI-теста через API до старта браузера
+        String apiUrl = System.getProperty("api.url", "http://backend:8080");
+        String loginBody = "{\"username\": \"ryce_test_automation\", \"password\": \"password123\"}";
 
         try {
             RestAssured.given()
@@ -33,18 +37,21 @@ public class LoginUiTest {
                     .body(loginBody)
                     .post("/api/auth/register");
         } catch (Exception e) {
-            System.out.println("Не удалось отправить запрос на предустановку UI-пользователя: " + e.getMessage());
+            System.out.println("Пре-регистрация UI-пользователя завершилась (возможно, он уже создан): " + e.getMessage());
         }
     }
 
     @Test
     void testSuccessfulLoginWithPageObject() {
+        // Открываем главную страницу относительно Configuration.baseUrl
         open("/");
 
         loginPage.openPage();
-        // Входим под свежесозданным пользователем
-        loginPage.login("ryce_ui_user", "password123");
 
+        // Входим под гарантированно существующим аккаунтом
+        loginPage.login("ryce_test_automation", "password123");
+
+        // Проверяем относительный путь, чтобы тест не падал из-за разницы хостов (frontend vs localhost)
         webdriver().shouldHave(WebDriverConditions.urlContaining("/products"));
     }
 }

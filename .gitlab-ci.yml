@@ -49,7 +49,7 @@ run_automation:
   - sleep 30
 
   script:
-  - mvn clean test -Dtest=!LoginUiTest -Dapi.url="http://backend:8080"
+  - mvn clean test -Dapi.url="http://backend:8080"
 
   artifacts:
     when: always
